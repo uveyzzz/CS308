@@ -42,19 +42,19 @@ Open http://localhost:5173. The home page shows "Backend is up" when everything 
 
 ## Connecting to Supabase
 
-Local development uses the Docker Postgres from `docker-compose.yml`. The shared/demo environment uses Supabase.
+Local development uses the Docker Postgres from `docker-compose.yml`. The shared/demo environment uses Supabase: project **CS308 Store** in the `cs308-group` organization, region eu-west-2. Ask a teammate for an invite and for the database password; never share the password in the repo or the group chat.
 
 1. In the Supabase dashboard open **Connect** and copy the **Session pooler** connection (port 5432).
 2. Add these lines to `backend/.env`:
 
    ```properties
-   DB_URL=jdbc:postgresql://aws-0-<region>.pooler.supabase.com:5432/postgres?sslmode=require
-   DB_USERNAME=postgres.<project-ref>
+   DB_URL=jdbc:postgresql://aws-0-eu-west-2.pooler.supabase.com:5432/postgres?sslmode=require
+   DB_USERNAME=postgres.njetjmvewckolkkpbruo
    DB_PASSWORD=<database-password>
    DB_POOL_SIZE=3
    ```
 
-3. Start the backend. Flyway applies any new migrations on startup. Remove the lines to go back to Docker.
+3. Start the backend. The log should show `Database: jdbc:postgresql://aws-0-eu-west-2.pooler.supabase.com...`, and Flyway applies any new migrations on startup. Remove the lines to go back to Docker.
 
 The pooler has a small connection limit that the whole team shares, so use Docker for daily work.
 
