@@ -14,3 +14,8 @@ CREATE TABLE users (
     birth_date      DATE         CHECK (birth_date < CURRENT_DATE),
     created_at      TIMESTAMPTZ  NOT NULL DEFAULT now()
 );
+
+-- Supabase can expose the public schema through its Data API. With row level security on and
+-- no policies, that API sees nothing, while the backend still works because it owns the tables.
+-- Every new table needs this line too.
+ALTER TABLE users ENABLE ROW LEVEL SECURITY;
