@@ -17,6 +17,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.RequestPostProcessor;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -24,7 +25,9 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.cs308.store.auth.JwtService;
 import com.cs308.store.user.Role;
+import com.cs308.store.user.UserRepository;
 
 /**
  * Checks who can reach which area. The real management endpoints do not exist yet, so
@@ -32,6 +35,7 @@ import com.cs308.store.user.Role;
  */
 @WebMvcTest(RoleAccessTest.AreaEndpoints.class)
 @Import({ SecurityConfig.class, RoleAccessTest.AreaEndpoints.class })
+@MockitoBean(types = { JwtService.class, UserRepository.class })
 class RoleAccessTest {
 
     private static final String SALES = "/api/sales/ping";

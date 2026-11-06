@@ -18,20 +18,24 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.access.AccessDeniedHandler;
 import org.springframework.security.web.authentication.HttpStatusEntryPoint;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
+import com.cs308.store.auth.JwtAuthenticationFilter;
+import com.cs308.store.auth.JwtService;
 import com.cs308.store.common.ApiError;
 import com.cs308.store.user.Role;
+import com.cs308.store.user.UserRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
  * Central security rules.
  *
- * The API is stateless: no server-side session, no login form. The login story
- * (Sprint 1) adds a JWT filter here; until then every non-public endpoint
- * answers 401.
+ * The API is stateless: no server-side session, no login form. Each request proves
+ * who it is with a token, which JwtAuthenticationFilter checks. A non-public endpoint
+ * answers 401 without a valid token, and 403 if the user's role is not allowed.
  *
  * The first matching rule wins, so specific rules must stay above general ones.
  */
@@ -43,13 +47,15 @@ public class SecurityConfig {
     private List<String> allowedOrigins;
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http, AccessDeniedHandler accessDeniedHandler)
-            throws Exception {
+    public SecurityFilterChain securityFilterChain(HttpSecurity http, AccessDeniedHandler accessDeniedHandler,
+            JwtService jwtService, UserRepository userRepository) throws Exception {
         http
                 // CSRF protection is for cookie-based sessions; a token-based API does not need it.
                 .csrf(AbstractHttpConfigurer::disable)
                 .cors(Customizer.withDefaults())
                 .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .addFilterBefore(new JwtAuthenticationFilter(jwtService, userRepository),
+                        UsernamePasswordAuthenticationFilter.class)
                 .formLogin(AbstractHttpConfigurer::disable)
                 .httpBasic(AbstractHttpConfigurer::disable)
                 .exceptionHandling(e -> e
