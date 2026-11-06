@@ -26,7 +26,7 @@ Requirements: JDK 21, Maven 3.9+, Node 22+, Docker.
 # 1. Database
 docker compose up -d
 
-# 2. Backend
+# 2. Backend (first time: copy backend/.env.example to backend/.env and set JWT_SECRET)
 cd backend
 mvn spring-boot:run          # tests: mvn test
 
@@ -38,33 +38,51 @@ npm run dev                  # tests: npm test
 
 Open http://localhost:5173. The home page shows "Backend is up" when everything is connected.
 
-## Shared Supabase database
+`backend/.env` is gitignored. Never commit it.
 
-Local development uses the Docker Postgres by default. To run the backend against the shared Supabase database (team testing and demos):
+## Connecting to Supabase
 
-1. Get invited to the `cs308-group` organization on Supabase (project **CS308 Store**, region eu-west-2).
-2. Copy `backend/.env.example` to `backend/.env` and fill in the values from Supabase → **Connect** → **Direct** → **Session pooler**:
-   ```
+Local development uses the Docker Postgres from `docker-compose.yml`. The shared/demo environment uses Supabase: project **CS308 Store** in the `cs308-group` organization, region eu-west-2. Ask a teammate for an invite and for the database password; never share the password in the repo or the group chat.
+
+1. In the Supabase dashboard open **Connect** and copy the **Session pooler** connection (port 5432).
+2. Add these lines to `backend/.env`:
+
+   ```properties
    DB_URL=jdbc:postgresql://aws-0-eu-west-2.pooler.supabase.com:5432/postgres?sslmode=require
    DB_USERNAME=postgres.njetjmvewckolkkpbruo
-   DB_PASSWORD=<ask a teammate privately>
+   DB_PASSWORD=<database-password>
+   DB_POOL_SIZE=3
    ```
-3. Run the backend from `backend/` with `mvn spring-boot:run`. The log should show `Database: jdbc:postgresql://aws-0-eu-west-2.pooler.supabase.com...`.
-4. To go back to local Docker, delete or rename `backend/.env`.
 
-Rules:
-- `.env` is gitignored. Never commit it and never share the password in the repo or the group chat.
-- Do not change tables from the Supabase dashboard. All schema changes go through Flyway migrations.
-- Only run code from `main` against Supabase. Test migrations from unmerged branches on local Docker; a migration that changes during review would break Flyway on the shared database.
+3. Start the backend. The log should show `Database: jdbc:postgresql://aws-0-eu-west-2.pooler.supabase.com...`, and Flyway applies any new migrations on startup. Remove the lines to go back to Docker.
+
+The pooler has a small connection limit that the whole team shares, so use Docker for daily work.
 
 ## Database migrations
 
 The schema is managed by Flyway; Hibernate only validates it (`ddl-auto: validate`).
 
-- Add a new file to `backend/src/main/resources/db/migration/`, named `V<next number>__<description>.sql`,
-  for example `V2__create_products.sql`.
+- All schema changes are files in `backend/src/main/resources/db/migration/`, named
+  `V<next number>__<description>.sql`. Never change the schema by hand in the Supabase dashboard.
 - Never edit a migration that is already on `main`; add a new one instead.
 - Agree on the next version number in the team chat before opening a PR, so two branches do not both add `V3`.
+- Only run migrations that are final against Supabase: once applied there, a file cannot change.
+- Every new table needs `ALTER TABLE <name> ENABLE ROW LEVEL SECURITY;` in its migration. Supabase can expose
+  the public schema through its Data API; with this line that API sees nothing, and the backend still works.
+
+## Accounts and roles
+
+- The backend needs `JWT_SECRET` in `backend/.env`, at least 32 characters, or it does not start.
+- Sign-up always creates a `CUSTOMER`. The staff accounts come from the `V2` migration:
+  `sales.manager@store.test`, `product.manager@store.test` and `support.agent@store.test`.
+  Their password is shared in the team chat, never in the repo.
+- Login tokens carry the user id and role. A role change applies after the next login.
+- Admin endpoints live under `/api/admin/products/**` (`PRODUCT_MANAGER`), `/api/admin/sales/**` (`SALES_MANAGER`)
+  and `/api/admin/support/**` (`SUPPORT_AGENT`). Put `@PreAuthorize("hasRole('...')")` on each admin controller.
+  `SecurityConfig` also guards these paths, so a forgotten annotation cannot open one, and any other
+  `/api/admin/**` path is closed until it gets a rule.
+- Anyone can read `/api/products/**` and `/api/categories/**`, but every other method there needs `PRODUCT_MANAGER`.
+  Customer actions such as reviews need their own path, for example `/api/reviews`.
 
 ## How we work
 

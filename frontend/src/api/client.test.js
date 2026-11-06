@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest'
-import { ApiError, apiFetch, setToken } from './client'
+import { ApiError, SESSION_EXPIRED_EVENT, apiFetch, getToken, setToken } from './client'
 
 function mockFetch(status, body) {
   return vi.spyOn(globalThis, 'fetch').mockResolvedValue(
@@ -49,6 +49,30 @@ describe('apiFetch', () => {
     expect(error.status).toBe(400)
     expect(error.message).toBe('Validation failed')
     expect(error.fieldErrors).toEqual({ email: 'must not be blank' })
+  })
+
+  it('clears a rejected token and announces it', async () => {
+    mockFetch(401)
+    setToken('expired')
+    const onExpired = vi.fn()
+    window.addEventListener(SESSION_EXPIRED_EVENT, onExpired)
+
+    await apiFetch('/api/orders').catch(() => {})
+
+    window.removeEventListener(SESSION_EXPIRED_EVENT, onExpired)
+    expect(getToken()).toBeNull()
+    expect(onExpired).toHaveBeenCalledOnce()
+  })
+
+  it('does not treat a failed login by a guest as an expired session', async () => {
+    mockFetch(401, { status: 401, message: 'Invalid email or password' })
+    const onExpired = vi.fn()
+    window.addEventListener(SESSION_EXPIRED_EVENT, onExpired)
+
+    await apiFetch('/api/auth/login', { method: 'POST', body: {} }).catch(() => {})
+
+    window.removeEventListener(SESSION_EXPIRED_EVENT, onExpired)
+    expect(onExpired).not.toHaveBeenCalled()
   })
 
   it('falls back to a generic message when the error body is empty', async () => {
