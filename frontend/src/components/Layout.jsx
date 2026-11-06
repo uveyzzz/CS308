@@ -1,8 +1,10 @@
 import { Link, NavLink, Outlet } from 'react-router-dom'
+import { ADMIN_AREAS } from '../auth/adminAreas'
 import { useAuth } from '../auth/authContext'
 
 export default function Layout() {
   const { user, loading, logout } = useAuth()
+  const adminArea = ADMIN_AREAS.find(({ role }) => role === user?.role)
 
   return (
     <div className="app">
@@ -20,6 +22,7 @@ export default function Layout() {
           <nav className="app-header-account" aria-label="Account">
             {user ? (
               <>
+                {adminArea && <NavLink to={adminArea.path}>{adminArea.label}</NavLink>}
                 <NavLink to="/account/profile">My profile</NavLink>
                 <button type="button" className="link-button" onClick={logout}>
                   Log out

@@ -1,7 +1,9 @@
 import { Route, Routes } from 'react-router-dom'
 import AuthProvider from './auth/AuthProvider'
 import ProtectedRoute from './auth/ProtectedRoute'
+import { ADMIN_AREAS } from './auth/adminAreas'
 import Layout from './components/Layout'
+import AdminPage from './pages/AdminPage'
 import HomePage from './pages/HomePage'
 import LoginPage from './pages/LoginPage'
 import NotFoundPage from './pages/NotFoundPage'
@@ -21,6 +23,11 @@ export default function App() {
           <Route element={<ProtectedRoute />}>
             <Route path="account/profile" element={<ProfilePage />} />
           </Route>
+          {ADMIN_AREAS.map(({ role, path, label }) => (
+            <Route key={path} element={<ProtectedRoute roles={[role]} />}>
+              <Route path={path} element={<AdminPage title={label} />} />
+            </Route>
+          ))}
           <Route path="*" element={<NotFoundPage />} />
         </Route>
       </Routes>
