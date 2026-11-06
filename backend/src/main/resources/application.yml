@@ -25,3 +25,8 @@ server:
 app:
   cors:
     allowed-origins: ${CORS_ORIGINS:http://localhost:5173}
+  jwt:
+    # No default on purpose: this repo is public, and anyone who knows the secret
+    # can forge a manager's token. Set JWT_SECRET in backend/.env.
+    secret: ${JWT_SECRET}
+    expiration-minutes: ${JWT_EXPIRATION_MINUTES:120}
