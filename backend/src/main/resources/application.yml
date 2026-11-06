@@ -10,6 +10,9 @@ spring:
     url: ${DB_URL:jdbc:postgresql://localhost:5432/store}
     username: ${DB_USERNAME:store}
     password: ${DB_PASSWORD:store}
+    hikari:
+      # Supabase's pooler has a small connection limit that the whole team shares.
+      maximum-pool-size: ${DB_POOL_SIZE:5}
   jpa:
     hibernate:
       # Flyway owns the schema; Hibernate only checks that entities match it.
