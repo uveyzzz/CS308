@@ -1,92 +1,85 @@
-/* Base styles only. The team will pick the real visual design (requirement 6). */
 :root {
-  --bg: #f7f7f8;
-  --surface: #ffffff;
-  --text: #1c1c1e;
-  --muted: #6b6b73;
-  --border: #e3e3e8;
-  --accent: #2f5bea;
-  --ok: #1f8a4c;
-  --error: #c62828;
+  --bg-color: #f2ede4;
+  --surface-color: #ebdcd0;
+  --text-main: #2b2523;
+  --text-muted: #736965;
+  --border-color: #d1c7bc;
+  --accent-color: #3b312e;
 
-  font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  font-family: 'Playfair Display', Georgia, serif;
   line-height: 1.5;
-  color: var(--text);
-  background: var(--bg);
+  color: var(--text-main);
+  background-color: var(--bg-color);
 }
 
 * {
   box-sizing: border-box;
+  margin: 0;
+  padding: 0;
 }
 
 body {
-  margin: 0;
-}
-
-a {
-  color: var(--accent);
-}
-
-.app {
   min-height: 100vh;
-  display: flex;
-  flex-direction: column;
 }
 
-.app-header {
+/* Header & Navigation Stilleri */
+.site-header {
   display: flex;
   align-items: center;
-  gap: 24px;
-  padding: 12px 24px;
-  background: var(--surface);
-  border-bottom: 1px solid var(--border);
+  justify-content: space-between;
+  padding: 16px 32px;
+  background: transparent;
+  position: sticky;
+  top: 0;
+  z-index: 50;
 }
 
-.brand {
-  font-weight: 700;
-  text-decoration: none;
-  color: var(--text);
+.header-icon-btn {
+  background: none;
+  border: none;
+  font-size: 20px;
+  cursor: pointer;
+  color: var(--text-main);
 }
 
-.app-header nav {
+.search-bar-container {
+  flex: 0 1 400px;
+}
+
+.search-input {
+  width: 100%;
+  padding: 8px 16px;
+  border-radius: 20px;
+  border: 1px solid var(--border-color);
+  background: rgba(255, 255, 255, 0.4);
+  outline: none;
+}
+
+.header-right {
   display: flex;
+  align-items: center;
   gap: 16px;
 }
 
-.app-header nav a {
-  text-decoration: none;
-  color: var(--muted);
+.cart-btn {
+  position: relative;
+  background: none;
+  border: none;
+  font-size: 20px;
+  cursor: pointer;
 }
 
-.app-header nav a.active {
-  color: var(--text);
-  font-weight: 600;
-}
-
-.app-main {
-  flex: 1;
-  width: 100%;
-  max-width: 1100px;
-  margin: 0 auto;
-  padding: 24px 16px;
-}
-
-.app-footer {
-  padding: 16px 24px;
-  color: var(--muted);
-  font-size: 14px;
-  border-top: 1px solid var(--border);
-}
-
-.backend-status {
-  font-size: 14px;
-  color: var(--muted);
-}
-
-.backend-status--up {
-  color: var(--ok);
-}
-
-.backend-status--down {
-  color: var(--error);
+.cart-count {
+  position: absolute;
+  top: -6px;
+  right: -8px;
+  background: var(--accent-color);
+  color: #fff;
+  font-size: 11px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
