@@ -38,8 +38,24 @@ npm run dev                  # tests: npm test
 
 Open http://localhost:5173. The home page shows "Backend is up" when everything is connected.
 
-To use the shared Supabase database instead of the local one, copy `backend/.env.example` to
-`backend/.env` and fill in the values. Never commit `.env`.
+## Shared Supabase database
+
+Local development uses the Docker Postgres by default. To run the backend against the shared Supabase database (team testing and demos):
+
+1. Get invited to the `cs308-group` organization on Supabase (project **CS308 Store**, region eu-west-2).
+2. Copy `backend/.env.example` to `backend/.env` and fill in the values from Supabase → **Connect** → **Direct** → **Session pooler**:
+   ```
+   DB_URL=jdbc:postgresql://aws-0-eu-west-2.pooler.supabase.com:5432/postgres?sslmode=require
+   DB_USERNAME=postgres.njetjmvewckolkkpbruo
+   DB_PASSWORD=<ask a teammate privately>
+   ```
+3. Run the backend from `backend/` with `mvn spring-boot:run`. The log should show `Database: jdbc:postgresql://aws-0-eu-west-2.pooler.supabase.com...`.
+4. To go back to local Docker, delete or rename `backend/.env`.
+
+Rules:
+- `.env` is gitignored. Never commit it and never share the password in the repo or the group chat.
+- Do not change tables from the Supabase dashboard. All schema changes go through Flyway migrations.
+- Only run code from `main` against Supabase. Test migrations from unmerged branches on local Docker; a migration that changes during review would break Flyway on the shared database.
 
 ## Database migrations
 
