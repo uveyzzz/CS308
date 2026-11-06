@@ -17,11 +17,10 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import com.cs308.store.auth.JwtService;
 import com.cs308.store.common.HealthController;
-import com.cs308.store.user.UserRepository;
 
 @WebMvcTest(HealthController.class)
 @Import(SecurityConfig.class)
-@MockitoBean(types = { JwtService.class, UserRepository.class })
+@MockitoBean(types = JwtService.class)
 class SecurityConfigTest {
 
     @Autowired

@@ -19,12 +19,11 @@ import com.cs308.store.common.ConflictException;
 import com.cs308.store.common.UnauthorizedException;
 import com.cs308.store.config.SecurityConfig;
 import com.cs308.store.user.Role;
-import com.cs308.store.user.UserRepository;
 import com.cs308.store.user.UserResponse;
 
 @WebMvcTest(AuthController.class)
 @Import(SecurityConfig.class)
-@MockitoBean(types = { JwtService.class, UserRepository.class })
+@MockitoBean(types = JwtService.class)
 class AuthControllerTest {
 
     private static final String VALID_REGISTRATION = """

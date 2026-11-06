@@ -36,7 +36,7 @@ class BearerTokenAccessTest {
     @RestController
     static class SalesEndpoint {
 
-        @GetMapping("/api/sales/ping")
+        @GetMapping("/api/admin/sales/ping")
         String ping() {
             return "ok";
         }
@@ -51,37 +51,39 @@ class BearerTokenAccessTest {
     @MockitoBean
     private UserRepository users;
 
-    private String tokenFor(Role role) {
-        User user = new User("Ada", "ada@example.com", "a-bcrypt-hash", role, null);
-        ReflectionTestUtils.setField(user, "id", USER_ID);
-        given(users.findById(USER_ID)).willReturn(Optional.of(user));
-        return "Bearer " + jwtService.createToken(USER_ID);
+    private String bearer(Role role) {
+        return "Bearer " + jwtService.createToken(USER_ID, role);
     }
 
     @Test
     void validTokenReachesProtectedEndpoints() throws Exception {
-        mockMvc.perform(get("/api/me").header("Authorization", tokenFor(Role.CUSTOMER)))
+        User user = new User("Ada", "ada@example.com", "a-bcrypt-hash", Role.CUSTOMER, null);
+        ReflectionTestUtils.setField(user, "id", USER_ID);
+        given(users.findById(USER_ID)).willReturn(Optional.of(user));
+
+        mockMvc.perform(get("/api/me").header("Authorization", bearer(Role.CUSTOMER)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.role").value("CUSTOMER"));
     }
 
     @Test
     void forgedTokenReturns401() throws Exception {
-        String forged = new JwtService("another-secret-that-is-long-enough-for-hs256", 60).createToken(USER_ID);
+        String forged = new JwtService("another-secret-that-is-long-enough-for-hs256", 60)
+                .createToken(USER_ID, Role.SALES_MANAGER);
 
-        mockMvc.perform(get("/api/me").header("Authorization", "Bearer " + forged))
+        mockMvc.perform(get("/api/admin/sales/ping").header("Authorization", "Bearer " + forged))
                 .andExpect(status().isUnauthorized());
     }
 
     @Test
     void customerTokenCannotEnterTheSalesArea() throws Exception {
-        mockMvc.perform(get("/api/sales/ping").header("Authorization", tokenFor(Role.CUSTOMER)))
+        mockMvc.perform(get("/api/admin/sales/ping").header("Authorization", bearer(Role.CUSTOMER)))
                 .andExpect(status().isForbidden());
     }
 
     @Test
     void salesManagerTokenEntersTheSalesArea() throws Exception {
-        mockMvc.perform(get("/api/sales/ping").header("Authorization", tokenFor(Role.SALES_MANAGER)))
+        mockMvc.perform(get("/api/admin/sales/ping").header("Authorization", bearer(Role.SALES_MANAGER)))
                 .andExpect(status().isOk());
     }
 }

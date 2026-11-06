@@ -9,15 +9,16 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.security.config.Customizer;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.access.AccessDeniedHandler;
-import org.springframework.security.web.authentication.HttpStatusEntryPoint;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
@@ -27,7 +28,6 @@ import com.cs308.store.auth.JwtAuthenticationFilter;
 import com.cs308.store.auth.JwtService;
 import com.cs308.store.common.ApiError;
 import com.cs308.store.user.Role;
-import com.cs308.store.user.UserRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
@@ -41,25 +41,25 @@ import com.fasterxml.jackson.databind.ObjectMapper;
  */
 @Configuration
 @EnableWebSecurity
+@EnableMethodSecurity
 public class SecurityConfig {
 
     @Value("${app.cors.allowed-origins}")
     private List<String> allowedOrigins;
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http, AccessDeniedHandler accessDeniedHandler,
-            JwtService jwtService, UserRepository userRepository) throws Exception {
+    public SecurityFilterChain securityFilterChain(HttpSecurity http, AuthenticationEntryPoint authenticationEntryPoint,
+            AccessDeniedHandler accessDeniedHandler, JwtService jwtService) throws Exception {
         http
                 // CSRF protection is for cookie-based sessions; a token-based API does not need it.
                 .csrf(AbstractHttpConfigurer::disable)
                 .cors(Customizer.withDefaults())
                 .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .addFilterBefore(new JwtAuthenticationFilter(jwtService, userRepository),
-                        UsernamePasswordAuthenticationFilter.class)
+                .addFilterBefore(new JwtAuthenticationFilter(jwtService), UsernamePasswordAuthenticationFilter.class)
                 .formLogin(AbstractHttpConfigurer::disable)
                 .httpBasic(AbstractHttpConfigurer::disable)
                 .exceptionHandling(e -> e
-                        .authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED))
+                        .authenticationEntryPoint(authenticationEntryPoint)
                         .accessDeniedHandler(accessDeniedHandler))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/health", "/api/auth/**").permitAll()
@@ -67,19 +67,30 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/products/**", "/api/categories/**").permitAll()
                         // Any other method changes the catalog, so only product managers may do it (requirement 12).
                         .requestMatchers("/api/products/**", "/api/categories/**").hasRole(Role.PRODUCT_MANAGER.name())
-                        // Each management area belongs to one role, so a new endpoint under these
-                        // paths is protected without any extra code (requirements 10, 17).
-                        .requestMatchers("/api/sales/**").hasRole(Role.SALES_MANAGER.name())
-                        .requestMatchers("/api/product-manager/**").hasRole(Role.PRODUCT_MANAGER.name())
-                        .requestMatchers("/api/support/**").hasRole(Role.SUPPORT_AGENT.name())
+                        // Admin controllers also carry @PreAuthorize. These rules are the safety net:
+                        // a forgotten annotation cannot open an admin endpoint (requirements 10, 17).
+                        .requestMatchers("/api/admin/products/**").hasRole(Role.PRODUCT_MANAGER.name())
+                        .requestMatchers("/api/admin/sales/**").hasRole(Role.SALES_MANAGER.name())
+                        .requestMatchers("/api/admin/support/**").hasRole(Role.SUPPORT_AGENT.name())
+                        .requestMatchers("/api/admin/**").denyAll()
                         .anyRequest().authenticated());
         return http.build();
     }
 
     /**
-     * A role rule rejects the request in the security filter, before any controller runs, so
-     * GlobalExceptionHandler never sees it. This keeps the 403 in the common ApiError format.
+     * The security filter rejects a request before any controller runs, so GlobalExceptionHandler
+     * never sees it. These two beans keep the 401 and 403 in the common ApiError format.
      */
+    @Bean
+    public AuthenticationEntryPoint authenticationEntryPoint(ObjectMapper objectMapper) {
+        return (request, response, exception) -> {
+            response.setStatus(HttpStatus.UNAUTHORIZED.value());
+            response.setContentType(MediaType.APPLICATION_JSON_VALUE);
+            objectMapper.writeValue(response.getOutputStream(),
+                    ApiError.of(HttpStatus.UNAUTHORIZED.value(), "Authentication required"));
+        };
+    }
+
     @Bean
     public AccessDeniedHandler accessDeniedHandler(ObjectMapper objectMapper) {
         return (request, response, exception) -> {

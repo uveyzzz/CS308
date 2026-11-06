@@ -80,7 +80,7 @@ class AuthServiceTest {
     void registeringLogsTheUserIn() {
         AuthResponse response = authService.register(registerRequest("ada@example.com"));
 
-        assertThat(jwtService.readUserId(response.token())).contains(5L);
+        assertThat(jwtService.readClaims(response.token())).contains(new TokenClaims(5L, Role.CUSTOMER));
     }
 
     @Test
@@ -110,7 +110,7 @@ class AuthServiceTest {
 
         AuthResponse response = authService.login(new LoginRequest("ADA@example.com", PASSWORD));
 
-        assertThat(jwtService.readUserId(response.token())).contains(5L);
+        assertThat(jwtService.readClaims(response.token())).contains(new TokenClaims(5L, Role.CUSTOMER));
         assertThat(response.user().email()).isEqualTo("ada@example.com");
     }
 

@@ -11,16 +11,22 @@ import javax.crypto.SecretKey;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import com.cs308.store.user.Role;
+
+import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 
 /**
- * Creates and checks login tokens. A token holds only the user id: the role is read from the
- * database on every request, so a role change takes effect at once.
+ * Creates and checks login tokens. A token carries the user id and role, so a request needs no
+ * database lookup to be authorized. The signature stops anyone from changing them. The cost is
+ * that a role change only takes effect when the user logs in again or the token expires.
  */
 @Service
 public class JwtService {
+
+    private static final String ROLE_CLAIM = "role";
 
     private final SecretKey key;
     private final Duration lifetime;
@@ -32,24 +38,28 @@ public class JwtService {
         this.lifetime = Duration.ofMinutes(expirationMinutes);
     }
 
-    public String createToken(long userId) {
+    public String createToken(long userId, Role role) {
         Instant now = Instant.now();
         return Jwts.builder()
                 .subject(Long.toString(userId))
+                .claim(ROLE_CLAIM, role.name())
                 .issuedAt(Date.from(now))
                 .expiration(Date.from(now.plus(lifetime)))
                 .signWith(key)
                 .compact();
     }
 
-    /** Returns the user id, or empty if the token is expired, altered or not a token at all. */
-    public Optional<Long> readUserId(String token) {
+    /** Returns the token's claims, or empty if it is expired, altered or not a valid token. */
+    public Optional<TokenClaims> readClaims(String token) {
         try {
-            String subject = Jwts.parser().verifyWith(key).build()
+            Claims claims = Jwts.parser().verifyWith(key).build()
                     .parseSignedClaims(token)
-                    .getPayload()
-                    .getSubject();
-            return Optional.of(Long.valueOf(subject));
+                    .getPayload();
+            String role = claims.get(ROLE_CLAIM, String.class);
+            if (role == null) {
+                return Optional.empty();
+            }
+            return Optional.of(new TokenClaims(Long.parseLong(claims.getSubject()), Role.valueOf(role)));
         } catch (JwtException | IllegalArgumentException e) {
             return Optional.empty();
         }

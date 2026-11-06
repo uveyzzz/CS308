@@ -46,7 +46,7 @@ public class AuthService {
     }
 
     private AuthResponse responseFor(User user) {
-        return new AuthResponse(jwtService.createToken(user.getId()), UserResponse.from(user));
+        return new AuthResponse(jwtService.createToken(user.getId(), user.getRole()), UserResponse.from(user));
     }
 
     /** Locale.ROOT matters: under a Turkish locale "INFO" would become "ınfo". */
