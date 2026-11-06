@@ -90,3 +90,74 @@ a {
 .backend-status--down {
   color: var(--error);
 }
+
+.app-header .app-header-account {
+  margin-left: auto;
+  align-items: center;
+}
+
+.link-button {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--muted);
+  font: inherit;
+  cursor: pointer;
+}
+
+.form-page {
+  max-width: 420px;
+}
+
+.form-page form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.form-page button[type='submit'] {
+  align-self: flex-start;
+  padding: 8px 16px;
+  border: 0;
+  border-radius: 6px;
+  background: var(--accent);
+  color: #ffffff;
+  font: inherit;
+  cursor: pointer;
+}
+
+.form-page button[type='submit']:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.form-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.form-field input {
+  padding: 8px 10px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  font: inherit;
+}
+
+.form-field input[aria-invalid='true'] {
+  border-color: var(--error);
+}
+
+.form-error,
+.form-success {
+  margin: 0;
+  font-size: 14px;
+}
+
+.form-error {
+  color: var(--error);
+}
+
+.form-success {
+  color: var(--ok);
+}
