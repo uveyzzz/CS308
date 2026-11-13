@@ -1,12 +1,15 @@
 import { Route, Routes } from 'react-router-dom'
 import AuthProvider from './auth/AuthProvider'
 import ProtectedRoute from './auth/ProtectedRoute'
+import CartProvider from './cart/CartProvider'
 import { ADMIN_AREAS } from './auth/adminAreas'
 import Layout from './components/Layout'
 import AdminPage from './pages/AdminPage'
 import HomePage from './pages/HomePage'
 import LoginPage from './pages/LoginPage'
 import NotFoundPage from './pages/NotFoundPage'
+import ProductDetailPage from './pages/ProductDetailPage'
+import ProductListPage from './pages/ProductListPage'
 import ProfilePage from './pages/ProfilePage'
 import RegisterPage from './pages/RegisterPage'
 
@@ -15,22 +18,26 @@ import RegisterPage from './pages/RegisterPage'
 export default function App() {
   return (
     <AuthProvider>
-      <Routes>
-        <Route element={<Layout />}>
-          <Route index element={<HomePage />} />
-          <Route path="login" element={<LoginPage />} />
-          <Route path="register" element={<RegisterPage />} />
-          <Route element={<ProtectedRoute />}>
-            <Route path="account/profile" element={<ProfilePage />} />
-          </Route>
-          {ADMIN_AREAS.map(({ role, path, label }) => (
-            <Route key={path} element={<ProtectedRoute roles={[role]} />}>
-              <Route path={path} element={<AdminPage title={label} />} />
+      <CartProvider>
+        <Routes>
+          <Route element={<Layout />}>
+            <Route index element={<HomePage />} />
+            <Route path="products" element={<ProductListPage />} />
+            <Route path="product/:slug" element={<ProductDetailPage />} />
+            <Route path="login" element={<LoginPage />} />
+            <Route path="register" element={<RegisterPage />} />
+            <Route element={<ProtectedRoute />}>
+              <Route path="account/profile" element={<ProfilePage />} />
             </Route>
-          ))}
-          <Route path="*" element={<NotFoundPage />} />
-        </Route>
-      </Routes>
+            {ADMIN_AREAS.map(({ role, path, label }) => (
+              <Route key={path} element={<ProtectedRoute roles={[role]} />}>
+                <Route path={path} element={<AdminPage title={label} />} />
+              </Route>
+            ))}
+            <Route path="*" element={<NotFoundPage />} />
+          </Route>
+        </Routes>
+      </CartProvider>
     </AuthProvider>
   )
 }
