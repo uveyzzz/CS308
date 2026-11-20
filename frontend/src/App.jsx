@@ -5,6 +5,8 @@ import CartProvider from './cart/CartProvider'
 import { ADMIN_AREAS } from './auth/adminAreas'
 import Layout from './components/Layout'
 import AdminPage from './pages/AdminPage'
+import CartPage from './pages/CartPage'
+import CheckoutPage from './pages/CheckoutPage'
 import HomePage from './pages/HomePage'
 import LoginPage from './pages/LoginPage'
 import NotFoundPage from './pages/NotFoundPage'
@@ -24,10 +26,12 @@ export default function App() {
             <Route index element={<HomePage />} />
             <Route path="products" element={<ProductListPage />} />
             <Route path="product/:slug" element={<ProductDetailPage />} />
+            <Route path="cart" element={<CartPage />} />
             <Route path="login" element={<LoginPage />} />
             <Route path="register" element={<RegisterPage />} />
             <Route element={<ProtectedRoute />}>
               <Route path="account/profile" element={<ProfilePage />} />
+              <Route path="checkout" element={<CheckoutPage />} />
             </Route>
             {ADMIN_AREAS.map(({ role, path, label }) => (
               <Route key={path} element={<ProtectedRoute roles={[role]} />}>

@@ -19,8 +19,9 @@ export default function Layout() {
             Home
           </NavLink>
           <NavLink to="/products">Products</NavLink>
-          {/* Cart page is not built yet, so for now only the item count is shown. */}
-          <span className="cart-count">Cart ({count})</span>
+          <NavLink to="/cart" className="cart-count">
+            Cart ({count})
+          </NavLink>
         </nav>
         {!loading && (
           <nav className="app-header-account" aria-label="Account">
