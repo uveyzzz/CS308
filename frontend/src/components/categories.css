@@ -1,0 +1,30 @@
+/* Category menu (header) and category page. Uses the design tokens from index.css. */
+.category-menu ul { list-style: none; margin: 0; padding: 0; }
+.category-menu > ul { display: flex; gap: 16px; }
+.category-menu-item { position: relative; }
+
+/* Subcategories open on hover and when a link inside gets keyboard focus. */
+.category-submenu {
+  display: none;
+  position: absolute;
+  top: 100%;
+  left: 0;
+  z-index: 10;
+  min-width: 180px;
+  padding: 8px 0;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
+}
+.category-menu-item:hover .category-submenu,
+.category-menu-item:focus-within .category-submenu { display: block; }
+.category-submenu a { display: block; padding: 6px 16px; white-space: nowrap; }
+
+.breadcrumb ol { display: flex; flex-wrap: wrap; gap: 6px; list-style: none; margin: 0 0 8px; padding: 0; color: var(--muted); }
+.breadcrumb li + li::before { content: '›'; margin-right: 6px; }
+.breadcrumb a { color: var(--muted); text-decoration: none; }
+.breadcrumb [aria-current='page'] { color: var(--text); }
+
+.subcategory-links { display: flex; flex-wrap: wrap; gap: 8px; list-style: none; margin: 0 0 24px; padding: 0; }
+.subcategory-links a { display: inline-block; padding: 6px 14px; border: 1px solid var(--border); border-radius: 999px; background: var(--surface); color: var(--text); text-decoration: none; }

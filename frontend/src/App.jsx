@@ -6,6 +6,7 @@ import { ADMIN_AREAS } from './auth/adminAreas'
 import Layout from './components/Layout'
 import AdminPage from './pages/AdminPage'
 import CartPage from './pages/CartPage'
+import CategoryPage from './pages/CategoryPage'
 import CheckoutPage from './pages/CheckoutPage'
 import HomePage from './pages/HomePage'
 import LoginPage from './pages/LoginPage'
@@ -26,6 +27,7 @@ export default function App() {
             <Route index element={<HomePage />} />
             <Route path="products" element={<ProductListPage />} />
             <Route path="product/:slug" element={<ProductDetailPage />} />
+            <Route path="category/:slug" element={<CategoryPage />} />
             <Route path="cart" element={<CartPage />} />
             <Route path="login" element={<LoginPage />} />
             <Route path="register" element={<RegisterPage />} />

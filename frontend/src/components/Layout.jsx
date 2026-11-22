@@ -2,6 +2,7 @@ import { Link, NavLink, Outlet } from 'react-router-dom'
 import { ADMIN_AREAS } from '../auth/adminAreas'
 import { useAuth } from '../auth/authContext'
 import { useCart } from '../cart/cartContext'
+import CategoryMenu from './CategoryMenu'
 
 export default function Layout() {
   const { user, loading, logout } = useAuth()
@@ -23,6 +24,7 @@ export default function Layout() {
             Cart ({count})
           </NavLink>
         </nav>
+        <CategoryMenu />
         {!loading && (
           <nav className="app-header-account" aria-label="Account">
             {user ? (
