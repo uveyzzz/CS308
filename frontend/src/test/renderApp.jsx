@@ -20,6 +20,8 @@ export function mockApi(routes = {}) {
     'GET /api/health': [200, { status: 'UP' }],
     // The header loads the category menu on every page.
     'GET /api/categories': [200, []],
+    // A logged-in customer's cart is loaded from the backend.
+    'GET /api/cart': [200, []],
     ...routes,
   }
   return vi.spyOn(globalThis, 'fetch').mockImplementation(async (path, { method }) => {
