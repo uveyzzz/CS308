@@ -23,15 +23,16 @@ public class ProductController {
     }
 
     /**
-     * GET /api/products?page=0&size=12 (page is zero-based), optionally &category=women and
-     * &sort=newest|price_asc|price_desc|popular
+     * GET /api/products?page=0&size=12 (page is zero-based), optionally &category=women,
+     * &sort=newest|price_asc|price_desc|popular and &q=gömlek (search in name and description)
      */
     @GetMapping
     public PageResponse<ProductSummary> list(@RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "12") int size, @RequestParam(required = false) String category,
-            @RequestParam(required = false) String sort) {
-        return productService.list(page, size, category, ProductSort.fromParam(sort));
+            @RequestParam(required = false) String sort, @RequestParam(required = false) String q) {
+        return productService.list(page, size, category, ProductSort.fromParam(sort), q);
     }
+
     /** GET /api/products/basic-tee-black */
     @GetMapping("/{slug}")
     public ProductDetailResponse get(@PathVariable String slug) {
