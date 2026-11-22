@@ -13,7 +13,11 @@ function renderAt(path) {
 
 describe('App routing', () => {
   beforeEach(() => {
-    vi.spyOn(globalThis, 'fetch').mockResolvedValue(new Response(JSON.stringify({ status: 'UP' })))
+    // A Response body can be read only once, so every request gets a new one.
+    // The header asks for the category menu, the home page for the backend status.
+    vi.spyOn(globalThis, 'fetch').mockImplementation(async (path) =>
+      new Response(JSON.stringify(path === '/api/categories' ? [] : { status: 'UP' })),
+    )
   })
 
   it('renders the home page at /', async () => {

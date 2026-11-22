@@ -16,7 +16,12 @@ export const USER = {
  * A request with no route fails the test, so nothing is called by accident.
  */
 export function mockApi(routes = {}) {
-  const allRoutes = { 'GET /api/health': [200, { status: 'UP' }], ...routes }
+  const allRoutes = {
+    'GET /api/health': [200, { status: 'UP' }],
+    // The header loads the category menu on every page.
+    'GET /api/categories': [200, []],
+    ...routes,
+  }
   return vi.spyOn(globalThis, 'fetch').mockImplementation(async (path, { method }) => {
     const route = allRoutes[`${method} ${path}`]
     if (!route) throw new Error(`Unexpected request: ${method} ${path}`)
