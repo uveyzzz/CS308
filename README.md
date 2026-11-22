@@ -99,4 +99,8 @@ The schema is managed by Flyway; Hibernate only validates it (`ddl-auto: validat
 - All endpoints live under `/api`. Public: `/api/health`, `/api/auth/**`, `GET /api/products/**`, `GET /api/categories/**`.
   Everything else requires authentication.
 - Errors always have the shape `{ "status", "message", "fieldErrors", "timestamp" }`.
+- Paged lists always have the shape `{ "content", "page", "size", "totalElements", "totalPages" }`
+  (`common/PageResponse`). `page` is zero-based, as in Spring.
+- Catalog: `GET /api/products?page=0&size=12` returns product cards (products table only, newest first,
+  max 48 per page); `GET /api/products/{slug}` returns one product with its details and variants.
 - Frontend code calls the backend through `frontend/src/api/client.js` (`apiFetch`), never `fetch` directly.
