@@ -1,5 +1,7 @@
 package com.cs308.store.catalog;
 
+import java.util.Set;
+
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -22,16 +24,28 @@ public class ProductService {
     private final ProductRepository products;
     private final ProductDetailsRepository details;
     private final ProductVariantRepository variants;
+    private final CategoryService categoryService;
 
     public ProductService(ProductRepository products, ProductDetailsRepository details,
-            ProductVariantRepository variants) {
+            ProductVariantRepository variants, CategoryService categoryService) {
         this.products = products;
         this.details = details;
         this.variants = variants;
+        this.categoryService = categoryService;
     }
 
-    public PageResponse<ProductSummary> list(int page, int size) {
-        return PageResponse.from(products.findByActiveTrue(pageRequest(page, size)), ProductSummary::from);
+    /**
+     * @param categorySlug null or blank lists every product; otherwise only that category and
+     *                     its subcategories. An unknown category is a 404, not an empty list.
+     */
+    public PageResponse<ProductSummary> list(int page, int size, String categorySlug) {
+        Pageable pageable = pageRequest(page, size);
+        if (categorySlug == null || categorySlug.isBlank()) {
+            return PageResponse.from(products.findByActiveTrue(pageable), ProductSummary::from);
+        }
+        Set<Long> categoryIds = categoryService.subtreeIds(categorySlug);
+        return PageResponse.from(products.findByActiveTrueAndCategoryIdIn(categoryIds, pageable),
+                ProductSummary::from);
     }
 
     public ProductDetailResponse getBySlug(String slug) {

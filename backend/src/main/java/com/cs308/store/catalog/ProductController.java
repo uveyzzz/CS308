@@ -22,11 +22,11 @@ public class ProductController {
         this.productService = productService;
     }
 
-    /** GET /api/products?page=0&size=12 (page is zero-based) */
+    /** GET /api/products?page=0&size=12 (page is zero-based), optionally &category=women */
     @GetMapping
     public PageResponse<ProductSummary> list(@RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "12") int size) {
-        return productService.list(page, size);
+            @RequestParam(defaultValue = "12") int size, @RequestParam(required = false) String category) {
+        return productService.list(page, size, category);
     }
 
     /** GET /api/products/basic-tee-black */
