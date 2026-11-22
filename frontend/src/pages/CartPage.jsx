@@ -8,7 +8,9 @@ import './cart.css'
 /** Shopping cart page (req. 4). Guests can see and edit the cart; checkout needs a login. */
 export default function CartPage() {
   const { items, count, subtotal, updateQuantity, removeItem } = useCart()
-  const { user } = useAuth()
+  const { user, loading } = useAuth()
+  // While a saved login is still being checked, /checkout's own guard decides.
+  const isGuest = !user && !loading
 
   if (items.length === 0) {
     return (
@@ -35,8 +37,12 @@ export default function CartPage() {
             <span>Subtotal ({count} {count === 1 ? 'item' : 'items'})</span>
             <strong aria-label="Subtotal">{formatPrice(subtotal)}</strong>
           </p>
-          {/* /checkout is a protected route: guests are sent to log in and come back afterwards. */}
-          <Link to="/checkout" className="primary-button cart-checkout">
+          {/* A guest logs in first and comes back to the cart, now merged into their saved cart (SCRUM-24). */}
+          <Link
+            to={isGuest ? '/login' : '/checkout'}
+            state={isGuest ? { from: '/cart' } : undefined}
+            className="primary-button cart-checkout"
+          >
             Proceed to checkout
           </Link>
           {!user && <p className="cart-note">You will need to log in to check out.</p>}

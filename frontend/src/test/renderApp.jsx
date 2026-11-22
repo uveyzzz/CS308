@@ -23,6 +23,8 @@ export function mockApi(routes = {}) {
     // The home page shows the newest and the best-selling products.
     'GET /api/products?page=0&size=4&sort=newest': [200, { content: [], totalPages: 0 }],
     'GET /api/products?page=0&size=4&sort=popular': [200, { content: [], totalPages: 0 }],
+    // A logged-in customer's cart is loaded from the backend.
+    'GET /api/cart': [200, []],
     ...routes,
   }
   return vi.spyOn(globalThis, 'fetch').mockImplementation(async (path, { method }) => {
