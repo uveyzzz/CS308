@@ -1,9 +1,11 @@
 import { Link, NavLink, Outlet } from 'react-router-dom'
 import { ADMIN_AREAS } from '../auth/adminAreas'
 import { useAuth } from '../auth/authContext'
+import { useCart } from '../cart/cartContext'
 
 export default function Layout() {
   const { user, loading, logout } = useAuth()
+  const { count } = useCart()
   const adminArea = ADMIN_AREAS.find(({ role }) => role === user?.role)
 
   return (
@@ -16,7 +18,10 @@ export default function Layout() {
           <NavLink to="/" end>
             Home
           </NavLink>
-          {/* Sprint 2: add Products and Cart links as those pages land. */}
+          <NavLink to="/products">Products</NavLink>
+          <NavLink to="/cart" className="cart-count">
+            Cart ({count})
+          </NavLink>
         </nav>
         {!loading && (
           <nav className="app-header-account" aria-label="Account">
