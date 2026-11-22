@@ -68,6 +68,8 @@ public class SecurityConfig {
                         // Reviews are posted by customers (requirement 5). This must stay above the
                         // next rule, which would otherwise allow only product managers here.
                         .requestMatchers(HttpMethod.POST, "/api/products/*/reviews").hasRole(Role.CUSTOMER.name())
+                        // Only customers place orders; staff accounts cannot buy (requirements 4, 10).
+                        .requestMatchers(HttpMethod.POST, "/api/orders").hasRole(Role.CUSTOMER.name())
                         // Any other method changes the catalog, so only product managers may do it (requirement 12).
                         .requestMatchers("/api/products/**", "/api/categories/**").hasRole(Role.PRODUCT_MANAGER.name())
                         // Admin controllers also carry @PreAuthorize. These rules are the safety net:
