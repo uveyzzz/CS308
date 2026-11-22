@@ -18,8 +18,8 @@ public class ProductService {
 
     static final int MAX_PAGE_SIZE = 48;
 
-    /** Newest first until sorting (SCRUM-20) lets the user choose. The id breaks ties. */
-    static final Sort DEFAULT_SORT = Sort.by(Sort.Order.desc("createdAt"), Sort.Order.desc("id"));
+    /** Used when the request does not choose a sort. */
+    static final Sort DEFAULT_SORT = ProductSort.NEWEST.toSort();
 
     private final ProductRepository products;
     private final ProductDetailsRepository details;
@@ -34,12 +34,17 @@ public class ProductService {
         this.categoryService = categoryService;
     }
 
+    public PageResponse<ProductSummary> list(int page, int size, String categorySlug) {
+        return list(page, size, categorySlug, ProductSort.NEWEST);
+    }
+
     /**
      * @param categorySlug null or blank lists every product; otherwise only that category and
      *                     its subcategories. An unknown category is a 404, not an empty list.
+     * @param sort         the order chosen by the user (SCRUM-20); null means newest first.
      */
-    public PageResponse<ProductSummary> list(int page, int size, String categorySlug) {
-        Pageable pageable = pageRequest(page, size);
+    public PageResponse<ProductSummary> list(int page, int size, String categorySlug, ProductSort sort) {
+        Pageable pageable = pageRequest(page, size, sort);
         if (categorySlug == null || categorySlug.isBlank()) {
             return PageResponse.from(products.findByActiveTrue(pageable), ProductSummary::from);
         }
@@ -56,10 +61,15 @@ public class ProductService {
                 variants.findByProductIdOrderByIdAsc(product.getId()));
     }
 
-    /** Out-of-range values are clamped instead of rejected, so a hand-typed URL still works. */
     static Pageable pageRequest(int page, int size) {
+        return pageRequest(page, size, ProductSort.NEWEST);
+    }
+
+    /** Out-of-range values are clamped instead of rejected, so a hand-typed URL still works. */
+    static Pageable pageRequest(int page, int size, ProductSort sort) {
         int safePage = Math.max(page, 0);
         int safeSize = Math.min(Math.max(size, 1), MAX_PAGE_SIZE);
-        return PageRequest.of(safePage, safeSize, DEFAULT_SORT);
+        ProductSort safeSort = sort == null ? ProductSort.NEWEST : sort;
+        return PageRequest.of(safePage, safeSize, safeSort.toSort());
     }
 }

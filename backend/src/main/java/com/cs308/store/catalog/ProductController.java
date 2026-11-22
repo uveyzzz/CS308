@@ -22,13 +22,16 @@ public class ProductController {
         this.productService = productService;
     }
 
-    /** GET /api/products?page=0&size=12 (page is zero-based), optionally &category=women */
+    /**
+     * GET /api/products?page=0&size=12 (page is zero-based), optionally &category=women and
+     * &sort=newest|price_asc|price_desc|popular
+     */
     @GetMapping
     public PageResponse<ProductSummary> list(@RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "12") int size, @RequestParam(required = false) String category) {
-        return productService.list(page, size, category);
+            @RequestParam(defaultValue = "12") int size, @RequestParam(required = false) String category,
+            @RequestParam(required = false) String sort) {
+        return productService.list(page, size, category, ProductSort.fromParam(sort));
     }
-
     /** GET /api/products/basic-tee-black */
     @GetMapping("/{slug}")
     public ProductDetailResponse get(@PathVariable String slug) {
