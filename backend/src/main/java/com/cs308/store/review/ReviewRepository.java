@@ -1,15 +1,40 @@
 package com.cs308.store.review;
 
+import java.util.Optional;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import jakarta.persistence.LockModeType;
+
 public interface ReviewRepository extends JpaRepository<Review, Long> {
 
     boolean existsByUserIdAndProductId(Long userId, Long productId);
+
+    /** Locks the review until the transaction ends, so two managers cannot decide on it at once. */
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    Optional<Review> findWithLockById(Long id);
+
+    /** The approval queue: pending comments, oldest first, with product and author. */
+    @Query(value = """
+            SELECT new com.cs308.store.review.ModerationItem(r.id, p.id, p.name, p.slug, r.rating, r.comment,
+                   r.commentStatus, u.fullName, r.createdAt)
+            FROM Review r
+            JOIN Product p ON p.id = r.productId
+            JOIN User u ON u.id = r.userId
+            WHERE r.commentStatus = com.cs308.store.review.CommentStatus.PENDING
+            ORDER BY r.createdAt ASC, r.id ASC
+            """,
+            countQuery = """
+            SELECT count(r) FROM Review r
+            WHERE r.commentStatus = com.cs308.store.review.CommentStatus.PENDING
+            """)
+    Page<ModerationItem> findPendingComments(Pageable pageable);
 
     /** A product's reviews with the author's name, newest first. */
     @Query(value = """
