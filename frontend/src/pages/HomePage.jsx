@@ -8,17 +8,38 @@ import ProductCardSkeleton from '../components/ProductCardSkeleton'
 import './home.css'
 import './products.css'
 
-const NEW_ARRIVALS = 4
+const ROW_SIZE = 4
+
+/** Loads one row of products; null while loading, [] if it fails. */
+function useProductRow(sort) {
+  const [products, setProducts] = useState(null)
+
+  useEffect(() => {
+    let cancelled = false
+    fetchProducts(1, ROW_SIZE, { sort })
+      .then((page) => {
+        if (!cancelled) setProducts(Array.isArray(page?.content) ? page.content : [])
+      })
+      .catch(() => {
+        if (!cancelled) setProducts([])
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [sort])
+
+  return products
+}
 
 /**
- * Home page (SCRUM-28): hero, featured categories and new arrivals.
- * The product list is already sorted newest first. A best sellers section needs the
- * sorting from SCRUM-20 and is added when that lands.
- * If a section cannot load, it is left out and the rest of the page still works.
+ * Home page (SCRUM-28): hero, featured categories, new arrivals and best sellers.
+ * Best sellers use the popularity sort from SCRUM-20: most sold first, rating breaks ties.
+ * If a section cannot load or has nothing to show, it is left out and the rest still works.
  */
 export default function HomePage() {
   const [categories, setCategories] = useState([])
-  const [newArrivals, setNewArrivals] = useState(null) // null while loading
+  const newArrivals = useProductRow('newest')
+  const bestSellers = useProductRow('popular')
 
   useEffect(() => {
     let cancelled = false
@@ -27,13 +48,6 @@ export default function HomePage() {
         if (!cancelled) setCategories(Array.isArray(tree) ? tree : [])
       })
       .catch(() => {})
-    fetchProducts(1, NEW_ARRIVALS)
-      .then((page) => {
-        if (!cancelled) setNewArrivals(Array.isArray(page?.content) ? page.content : [])
-      })
-      .catch(() => {
-        if (!cancelled) setNewArrivals([])
-      })
     return () => {
       cancelled = true
     }
@@ -64,21 +78,28 @@ export default function HomePage() {
         </section>
       )}
 
-      {newArrivals?.length !== 0 && (
-        <section className="home-section" aria-labelledby="home-new">
-          <div className="home-section-title">
-            <h2 id="home-new">New arrivals</h2>
-            <Link to="/products">See all</Link>
-          </div>
-          <div className="product-grid">
-            {newArrivals === null
-              ? Array.from({ length: NEW_ARRIVALS }, (_, i) => <ProductCardSkeleton key={i} />)
-              : newArrivals.map((product) => <ProductCard key={product.id} product={product} />)}
-          </div>
-        </section>
-      )}
+      <ProductRow id="home-new" title="New arrivals" products={newArrivals} seeAll="/products" />
+      <ProductRow id="home-best" title="Best sellers" products={bestSellers} seeAll="/products?sort=popular" />
 
       <BackendStatus />
     </div>
+  )
+}
+
+function ProductRow({ id, title, products, seeAll }) {
+  if (products?.length === 0) return null
+
+  return (
+    <section className="home-section" aria-labelledby={id}>
+      <div className="home-section-title">
+        <h2 id={id}>{title}</h2>
+        <Link to={seeAll}>See all</Link>
+      </div>
+      <div className="product-grid">
+        {products === null
+          ? Array.from({ length: ROW_SIZE }, (_, i) => <ProductCardSkeleton key={i} />)
+          : products.map((product) => <ProductCard key={product.id} product={product} />)}
+      </div>
+    </section>
   )
 }

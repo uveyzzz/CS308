@@ -1,4 +1,4 @@
-import { screen, within } from '@testing-library/react'
+import { screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it } from 'vitest'
 import { mockApi, renderApp } from '../test/renderApp'
@@ -34,7 +34,7 @@ describe('HomePage (SCRUM-28)', () => {
   })
 
   it('shows the four newest products as new arrivals', async () => {
-    mockApi({ 'GET /api/products?page=0&size=4': [200, { content: NEWEST, totalPages: 2 }] })
+    mockApi({ 'GET /api/products?page=0&size=4&sort=newest': [200, { content: NEWEST, totalPages: 2 }] })
     renderApp('/')
 
     const section = screen.getByRole('region', { name: 'New arrivals' })
@@ -43,20 +43,38 @@ describe('HomePage (SCRUM-28)', () => {
     expect(within(section).getByRole('link', { name: 'See all' })).toHaveAttribute('href', '/products')
   })
 
-  it('shows placeholders while the new arrivals load', () => {
+  it('shows the four best sellers, using the popularity sort from SCRUM-20', async () => {
+    const popular = [product(2, 'Ribbed Tee'), product(3, 'Oxford Shirt'), product(5, 'Kids Hoodie'), product(1, 'Linen Blouse')]
+    mockApi({ 'GET /api/products?page=0&size=4&sort=popular': [200, { content: popular, totalPages: 2 }] })
+    renderApp('/')
+
+    const section = screen.getByRole('region', { name: 'Best sellers' })
+    await within(section).findByRole('link', { name: 'Ribbed Tee' })
+    const names = within(section).getAllByRole('heading', { level: 3 }).map((h) => h.textContent)
+    expect(names).toEqual(['Ribbed Tee', 'Oxford Shirt', 'Kids Hoodie', 'Linen Blouse'])
+    expect(within(section).getByRole('link', { name: 'See all' })).toHaveAttribute('href', '/products?sort=popular')
+  })
+
+  it('shows placeholders while the product rows load', () => {
     mockApi()
     renderApp('/')
 
-    expect(screen.getAllByTestId('product-skeleton')).toHaveLength(4)
+    expect(screen.getAllByTestId('product-skeleton')).toHaveLength(8)
   })
 
   it('leaves out sections that have nothing to show, and keeps the rest of the page', async () => {
-    mockApi({ 'GET /api/categories': [500, {}], 'GET /api/products?page=0&size=4': [500, {}] })
+    mockApi({
+      'GET /api/categories': [500, {}],
+      'GET /api/products?page=0&size=4&sort=newest': [500, {}],
+      'GET /api/products?page=0&size=4&sort=popular': [200, { content: [], totalPages: 0 }],
+    })
     renderApp('/')
 
     await screen.findByText('Backend is up')
+    await waitFor(() => expect(screen.queryAllByTestId('product-skeleton')).toHaveLength(0))
     expect(screen.queryByRole('region', { name: 'Shop by category' })).not.toBeInTheDocument()
     expect(screen.queryByRole('region', { name: 'New arrivals' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('region', { name: 'Best sellers' })).not.toBeInTheDocument()
     expect(screen.getByRole('heading', { name: 'Welcome' })).toBeInTheDocument()
   })
 })
