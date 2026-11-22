@@ -2,6 +2,7 @@ package com.cs308.store.catalog;
 
 import java.util.Set;
 
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -38,19 +39,33 @@ public class ProductService {
         return list(page, size, categorySlug, ProductSort.NEWEST);
     }
 
+    public PageResponse<ProductSummary> list(int page, int size, String categorySlug, ProductSort sort) {
+        return list(page, size, categorySlug, sort, null);
+    }
+
     /**
      * @param categorySlug null or blank lists every product; otherwise only that category and
      *                     its subcategories. An unknown category is a 404, not an empty list.
      * @param sort         the order chosen by the user (SCRUM-20); null means newest first.
+     * @param search       what the user typed in the search bar (SCRUM-19). Matches the name or the
+     *                     description, ignoring case. null or blank means no search.
      */
-    public PageResponse<ProductSummary> list(int page, int size, String categorySlug, ProductSort sort) {
+    public PageResponse<ProductSummary> list(int page, int size, String categorySlug, ProductSort sort,
+            String search) {
         Pageable pageable = pageRequest(page, size, sort);
+        String pattern = SearchText.toPattern(search);
+        Page<Product> result;
         if (categorySlug == null || categorySlug.isBlank()) {
-            return PageResponse.from(products.findByActiveTrue(pageable), ProductSummary::from);
+            result = pattern == null
+                    ? products.findByActiveTrue(pageable)
+                    : products.search(pattern, pageable);
+        } else {
+            Set<Long> categoryIds = categoryService.subtreeIds(categorySlug);
+            result = pattern == null
+                    ? products.findByActiveTrueAndCategoryIdIn(categoryIds, pageable)
+                    : products.searchInCategories(pattern, categoryIds, pageable);
         }
-        Set<Long> categoryIds = categoryService.subtreeIds(categorySlug);
-        return PageResponse.from(products.findByActiveTrueAndCategoryIdIn(categoryIds, pageable),
-                ProductSummary::from);
+        return PageResponse.from(result, ProductSummary::from);
     }
 
     public ProductDetailResponse getBySlug(String slug) {
