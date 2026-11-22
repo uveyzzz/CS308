@@ -94,10 +94,29 @@ describe('CartPage', () => {
     expect(await screen.findByRole('heading', { name: 'Log in' })).toBeInTheDocument()
   })
 
+  it('brings the guest back to the cart after logging in, with the cart merged (SCRUM-24)', async () => {
+    const fetchSpy = mockApi({
+      'POST /api/auth/login': [200, { token: 'abc', user: USER }],
+      'POST /api/cart/merge': [200, [SHIRT]],
+    })
+    localStorage.setItem('cart', JSON.stringify([SHIRT]))
+    renderApp('/cart')
+
+    await userEvent.click(screen.getByRole('link', { name: 'Proceed to checkout' }))
+    await userEvent.type(await screen.findByLabelText('Email'), 'ada@example.com')
+    await userEvent.type(screen.getByLabelText('Password'), 'long-enough')
+    await userEvent.click(screen.getByRole('button', { name: 'Log in' }))
+
+    expect(await screen.findByRole('heading', { name: 'Your cart' })).toBeInTheDocument()
+    expect(await screen.findByLabelText(`Quantity of ${shirtLabel}`)).toHaveTextContent('2')
+    const merge = fetchSpy.mock.calls.find(([path]) => path === '/api/cart/merge')
+    expect(JSON.parse(merge[1].body)).toEqual({ items: [{ variantId: 11, quantity: 2 }] })
+  })
+
   it('lets a logged-in customer go to checkout', async () => {
     setToken('abc')
     localStorage.setItem('cart', JSON.stringify([SHIRT]))
-    mockApi({ 'GET /api/me': [200, USER] })
+    mockApi({ 'GET /api/me': [200, USER], 'POST /api/cart/merge': [200, [SHIRT]] })
     renderApp('/cart')
 
     await userEvent.click(await screen.findByRole('link', { name: 'Proceed to checkout' }))
