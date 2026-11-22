@@ -1,0 +1,21 @@
+/* Home page (SCRUM-28). Uses the design tokens from index.css. */
+.home { display: flex; flex-direction: column; gap: 40px; }
+
+.home-hero { padding: 48px 32px; border-radius: 12px; background: var(--surface); border: 1px solid var(--border); }
+.home-hero h1 { margin: 0 0 8px; font-size: 2.2rem; }
+.home-hero p { margin: 0 0 24px; color: var(--muted); font-size: 1.1rem; }
+.home-hero-button { display: inline-block; text-decoration: none; text-align: center; padding: 12px 24px; }
+
+.home-section h2 { margin: 0 0 16px; }
+.home-section-title { display: flex; justify-content: space-between; align-items: baseline; gap: 16px; }
+
+.home-categories { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 12px; list-style: none; margin: 0; padding: 0; }
+.home-category { display: block; padding: 24px 16px; border: 1px solid var(--border); border-radius: 12px; background: var(--surface); color: var(--text); font-weight: 600; text-align: center; text-decoration: none; }
+.home-category:hover { border-color: var(--accent); }
+
+@media (max-width: 767px) {
+  .home { gap: 28px; }
+  .home-hero { padding: 28px 20px; }
+  .home-hero h1 { font-size: 1.7rem; }
+  .home-hero-button { display: block; }
+}

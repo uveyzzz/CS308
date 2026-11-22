@@ -96,6 +96,77 @@ a {
   align-items: center;
 }
 
+/* The links of the header. On wide screens they sit in one row and the Menu button is hidden. */
+.header-menu {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  gap: 24px;
+}
+
+.menu-toggle {
+  display: none;
+  margin-left: auto;
+  padding: 6px 14px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+  cursor: pointer;
+}
+
+/* Phones (SCRUM-28): the links fold behind the Menu button and stack. */
+@media (max-width: 767px) {
+  .app-header {
+    flex-wrap: wrap;
+    gap: 12px;
+    padding: 12px 16px;
+  }
+
+  .menu-toggle {
+    display: inline-block;
+  }
+
+  .header-menu {
+    display: none;
+    flex-basis: 100%;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .header-menu-open {
+    display: flex;
+  }
+
+  .app-header nav,
+  .header-menu .category-menu > ul {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .app-header .app-header-account {
+    margin-left: 0;
+    align-items: flex-start;
+  }
+
+  /* No hover on a phone: subcategories show under their category. */
+  .header-menu .category-submenu {
+    display: block;
+    position: static;
+    min-width: 0;
+    padding: 4px 0 0 12px;
+    border: 0;
+    box-shadow: none;
+    background: none;
+  }
+
+  .header-menu .category-submenu a {
+    padding: 4px 0;
+  }
+}
+
 .link-button {
   padding: 0;
   border: 0;
