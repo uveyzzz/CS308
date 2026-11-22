@@ -104,4 +104,14 @@ public class Review {
     public boolean isCommentVisible() {
         return commentStatus == CommentStatus.APPROVED;
     }
+
+    /**
+     * A product manager's decision on the comment. Callers check first that the comment is
+     * PENDING; the rating is not affected either way.
+     */
+    public void moderate(CommentStatus decision, long moderatorId) {
+        this.commentStatus = decision;
+        this.moderatedBy = moderatorId;
+        this.moderatedAt = Instant.now();
+    }
 }
