@@ -10,7 +10,7 @@ import org.springframework.test.util.ReflectionTestUtils;
  */
 final class CatalogTestData {
 
-    static final Category TOPS = new Category("Tops", null);
+    static final Category TOPS = new Category("Tops", "tops", null);
 
     private CatalogTestData() {
     }
