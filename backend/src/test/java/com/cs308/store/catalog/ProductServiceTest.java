@@ -5,11 +5,15 @@ import static com.cs308.store.catalog.CatalogTestData.variant;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -26,6 +30,7 @@ class ProductServiceTest {
     private ProductRepository products;
     private ProductDetailsRepository details;
     private ProductVariantRepository variants;
+    private CategoryService categoryService;
     private ProductService service;
 
     @BeforeEach
@@ -33,7 +38,8 @@ class ProductServiceTest {
         products = mock(ProductRepository.class);
         details = mock(ProductDetailsRepository.class);
         variants = mock(ProductVariantRepository.class);
-        service = new ProductService(products, details, variants);
+        categoryService = mock(CategoryService.class);
+        service = new ProductService(products, details, variants, categoryService);
     }
 
     @Test
@@ -42,7 +48,7 @@ class ProductServiceTest {
         given(products.findByActiveTrue(any(Pageable.class)))
                 .willReturn(new PageImpl<>(List.of(discounted), PageRequest.of(0, 12), 1));
 
-        PageResponse<ProductSummary> page = service.list(0, 12);
+        PageResponse<ProductSummary> page = service.list(0, 12, null);
 
         assertThat(page.totalPages()).isEqualTo(1);
         ProductSummary card = page.content().get(0);
@@ -51,6 +57,35 @@ class ProductServiceTest {
         assertThat(card.discountedPrice()).isEqualByComparingTo("80.00");
         assertThat(card.stock()).isEqualTo(7);
         assertThat(card.imageUrl()).isEqualTo("/img/basic-tee.jpg");
+    }
+
+    @Test
+    void categoryFilterListsTheCategoryAndItsSubcategories() {
+        given(categoryService.subtreeIds("women")).willReturn(Set.of(1L, 2L, 3L));
+        given(products.findByActiveTrueAndCategoryIdIn(eq(Set.of(1L, 2L, 3L)), any(Pageable.class)))
+                .willReturn(new PageImpl<>(List.of(product(1, "basic-tee", "10.00", "10.00", 1))));
+
+        PageResponse<ProductSummary> page = service.list(0, 12, "women");
+
+        assertThat(page.content()).extracting(ProductSummary::slug).containsExactly("basic-tee");
+        verify(products, never()).findByActiveTrue(any(Pageable.class));
+    }
+
+    @Test
+    void unknownCategoryIsNotFoundInsteadOfAnEmptyList() {
+        given(categoryService.subtreeIds("nope")).willThrow(new NotFoundException("Category not found"));
+
+        assertThatThrownBy(() -> service.list(0, 12, "nope")).isInstanceOf(NotFoundException.class);
+    }
+
+    @Test
+    void blankCategoryMeansAllProducts() {
+        given(products.findByActiveTrue(any(Pageable.class))).willReturn(new PageImpl<>(List.of()));
+
+        service.list(0, 12, "  ");
+
+        verify(products).findByActiveTrue(any(Pageable.class));
+        verify(categoryService, never()).subtreeIds(any());
     }
 
     @Test

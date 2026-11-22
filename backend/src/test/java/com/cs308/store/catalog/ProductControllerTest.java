@@ -37,7 +37,7 @@ class ProductControllerTest {
     void guestCanListProductsInTheShapeTheFrontendReads() throws Exception {
         ProductSummary card = new ProductSummary(1L, "basic-tee", "Basic Tee", new BigDecimal("100.00"),
                 new BigDecimal("80.00"), new BigDecimal("4.50"), 2, 7, "/img/tee.jpg");
-        given(productService.list(0, 12)).willReturn(new PageResponse<>(List.of(card), 0, 12, 1, 1));
+        given(productService.list(0, 12, null)).willReturn(new PageResponse<>(List.of(card), 0, 12, 1, 1));
 
         mockMvc.perform(get("/api/products"))
                 .andExpect(status().isOk())
@@ -49,12 +49,22 @@ class ProductControllerTest {
 
     @Test
     void passesPageAndSizeFromTheUrl() throws Exception {
-        given(productService.list(2, 24)).willReturn(new PageResponse<>(List.of(), 2, 24, 0, 0));
+        given(productService.list(2, 24, null)).willReturn(new PageResponse<>(List.of(), 2, 24, 0, 0));
 
         mockMvc.perform(get("/api/products").param("page", "2").param("size", "24"))
                 .andExpect(status().isOk());
 
-        verify(productService).list(2, 24);
+        verify(productService).list(2, 24, null);
+    }
+
+    @Test
+    void passesTheCategoryFilterFromTheUrl() throws Exception {
+        given(productService.list(0, 12, "women")).willReturn(new PageResponse<>(List.of(), 0, 12, 0, 0));
+
+        mockMvc.perform(get("/api/products").param("category", "women"))
+                .andExpect(status().isOk());
+
+        verify(productService).list(0, 12, "women");
     }
 
     @Test
