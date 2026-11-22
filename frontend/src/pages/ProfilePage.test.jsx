@@ -49,4 +49,32 @@ describe('ProfilePage', () => {
 
     expect(await screen.findByText('must not be blank')).toBeInTheDocument()
   })
+
+  // The acceptance criterion of SCRUM-27.
+  it('still shows the saved changes after logging out and back in', async () => {
+    const saved = { ...USER, fullName: 'Ada King', homeAddress: 'Ankara' }
+    mockApi({
+      'GET /api/me': [200, USER],
+      'PATCH /api/me': [200, saved],
+      'POST /api/auth/login': [200, { token: 'def', user: saved }],
+    })
+    const user = userEvent.setup()
+    renderApp('/account/profile')
+
+    const name = await screen.findByLabelText('Full name')
+    await user.clear(name)
+    await user.type(name, 'Ada King')
+    await user.clear(screen.getByLabelText('Home address'))
+    await user.type(screen.getByLabelText('Home address'), 'Ankara')
+    await user.click(screen.getByRole('button', { name: 'Save' }))
+    await screen.findByRole('status')
+
+    await user.click(screen.getByRole('button', { name: 'Log out' }))
+    await user.type(await screen.findByLabelText('Email'), 'ada@example.com')
+    await user.type(screen.getByLabelText('Password'), 'long-enough')
+    await user.click(screen.getByRole('button', { name: 'Log in' }))
+
+    expect(await screen.findByLabelText('Full name')).toHaveValue('Ada King')
+    expect(screen.getByLabelText('Home address')).toHaveValue('Ankara')
+  })
 })
