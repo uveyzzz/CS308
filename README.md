@@ -82,7 +82,8 @@ The schema is managed by Flyway; Hibernate only validates it (`ddl-auto: validat
   `SecurityConfig` also guards these paths, so a forgotten annotation cannot open one, and any other
   `/api/admin/**` path is closed until it gets a rule.
 - Anyone can read `/api/products/**` and `/api/categories/**`, but every other method there needs `PRODUCT_MANAGER`.
-  Customer actions such as reviews need their own path, for example `/api/reviews`.
+  The one exception is `POST /api/products/{id}/reviews`, which only a `CUSTOMER` may call; its rule sits above
+  the product manager rule in `SecurityConfig`. Other customer actions need their own path, for example `/api/orders`.
 
 ## How we work
 
