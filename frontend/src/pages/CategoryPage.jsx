@@ -4,6 +4,8 @@ import { fetchCategory } from '../api/categories'
 import { fetchProducts, PAGE_SIZE } from '../api/products'
 import ProductCard from '../components/ProductCard'
 import ProductCardSkeleton from '../components/ProductCardSkeleton'
+import SortSelect from '../components/SortSelect'
+import { apiSort, listParams, sortFromParams } from '../utils/productSort'
 import '../components/categories.css'
 import './products.css'
 
@@ -15,12 +17,13 @@ export default function CategoryPage() {
   const { slug } = useParams()
   const [params, setParams] = useSearchParams()
   const page = Math.max(1, Number(params.get('page')) || 1)
-  const key = `${slug}:${page}`
+  const sort = sortFromParams(params)
+  const key = `${slug}:${page}:${sort}`
   const [state, setState] = useState({ key: null, category: null, items: [], totalPages: 1, error: null })
 
   useEffect(() => {
     let cancelled = false
-    Promise.all([fetchCategory(slug), fetchProducts(page, PAGE_SIZE, { category: slug })])
+    Promise.all([fetchCategory(slug), fetchProducts(page, PAGE_SIZE, { category: slug, sort: apiSort(sort) })])
       .then(([category, products]) => {
         if (cancelled) return
         setState({ key, category, items: products.content ?? [], totalPages: products.totalPages ?? 1, error: null })
@@ -32,9 +35,9 @@ export default function CategoryPage() {
     return () => {
       cancelled = true
     }
-  }, [key, slug, page])
+  }, [key, slug, page, sort])
 
-  // Results belong to one category and page; until they arrive we show skeletons.
+  // Results belong to one category, page and sort; until they arrive we show skeletons.
   const loading = state.key !== key
   const { category, items, totalPages, error } = state
 
@@ -70,7 +73,10 @@ export default function CategoryPage() {
         </nav>
       )}
 
-      <h1>{category?.name ?? 'Products'}</h1>
+      <div className="list-toolbar">
+        <h1>{category?.name ?? 'Products'}</h1>
+        <SortSelect value={sort} onChange={(next) => setParams(listParams({ page: 1, sort: next }))} />
+      </div>
       {error && <p role="alert" className="form-error">Could not load this category: {error.message}</p>}
 
       {category?.children.length > 0 && (
@@ -97,13 +103,13 @@ export default function CategoryPage() {
 
       {!loading && totalPages > 1 && (
         <nav className="pagination" aria-label="Pagination">
-          <button type="button" disabled={page <= 1} onClick={() => setParams({ page: String(page - 1) })}>
+          <button type="button" disabled={page <= 1} onClick={() => setParams(listParams({ page: page - 1, sort }))}>
             Previous
           </button>
           <span>
             Page {page} of {totalPages}
           </span>
-          <button type="button" disabled={page >= totalPages} onClick={() => setParams({ page: String(page + 1) })}>
+          <button type="button" disabled={page >= totalPages} onClick={() => setParams(listParams({ page: page + 1, sort }))}>
             Next
           </button>
         </nav>

@@ -18,6 +18,11 @@
 .skeleton-line { height: 14px; border-radius: 4px; }
 @keyframes shimmer { to { background-position: -200% 0; } }
 
+.list-toolbar { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 16px; }
+.list-toolbar h1 { margin: 0; }
+.sort-select { display: flex; align-items: center; gap: 8px; color: var(--muted); }
+.sort-select select { padding: 8px 12px; border: 1px solid var(--border); border-radius: 8px; background: var(--surface); color: var(--text); font: inherit; }
+
 .pagination { display: flex; justify-content: center; align-items: center; gap: 16px; margin-top: 32px; }
 
 .product-detail { display: grid; grid-template-columns: 1fr 1fr; gap: 32px; }
