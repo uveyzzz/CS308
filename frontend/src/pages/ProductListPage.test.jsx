@@ -87,4 +87,41 @@ describe('ProductListPage', () => {
     renderApp('/products')
     await waitFor(() => expect(screen.getByText('No products found.')).toBeInTheDocument())
   })
+
+  it('sorts by the option chosen in the menu', async () => {
+    mockApi({
+      'GET /api/products?page=0&size=12': [200, PAGE_1],
+      'GET /api/products?page=0&size=12&sort=price_asc': [200, { content: [item(9)], totalPages: 1 }],
+    })
+    renderApp('/products')
+    await screen.findByText('Product 1')
+    await userEvent.selectOptions(screen.getByLabelText('Sort by'), 'price_asc')
+    expect(await screen.findByText('Product 9')).toBeInTheDocument()
+    expect(screen.getByLabelText('Sort by')).toHaveValue('price_asc')
+  })
+
+  it('opens with the sort in the URL, so a refresh keeps it', async () => {
+    mockApi({ 'GET /api/products?page=0&size=12&sort=popular': [200, { content: [item(5)], totalPages: 1 }] })
+    renderApp('/products?sort=popular')
+    expect(await screen.findByText('Product 5')).toBeInTheDocument()
+    expect(screen.getByLabelText('Sort by')).toHaveValue('popular')
+  })
+
+  it('keeps the sort when going to the next page', async () => {
+    mockApi({
+      'GET /api/products?page=0&size=12&sort=price_desc': [200, PAGE_1],
+      'GET /api/products?page=1&size=12&sort=price_desc': [200, PAGE_2],
+    })
+    renderApp('/products?sort=price_desc')
+    await screen.findByText('Product 1')
+    await userEvent.click(screen.getByRole('button', { name: 'Next' }))
+    expect(await screen.findByText('Product 4')).toBeInTheDocument()
+  })
+
+  it('treats an unknown sort in the URL as newest', async () => {
+    mockApi({ 'GET /api/products?page=0&size=12': [200, PAGE_1] })
+    renderApp('/products?sort=cheapest')
+    await screen.findByText('Product 1')
+    expect(screen.getByLabelText('Sort by')).toHaveValue('newest')
+  })
 })

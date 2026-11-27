@@ -102,4 +102,16 @@ describe('CategoryPage', () => {
     expect(await screen.findByText('Product 5')).toBeInTheDocument()
     expect(screen.queryByText('Product 1')).not.toBeInTheDocument()
   })
+
+  it('sorts the category products with the menu', async () => {
+    mockApi({
+      'GET /api/categories/women': [200, WOMEN],
+      'GET /api/products?page=0&size=12&category=women': products([item(1)]),
+      'GET /api/products?page=0&size=12&category=women&sort=price_desc': products([item(7)]),
+    })
+    renderApp('/category/women')
+    await screen.findByText('Product 1')
+    await userEvent.selectOptions(screen.getByLabelText('Sort by'), 'price_desc')
+    expect(await screen.findByText('Product 7')).toBeInTheDocument()
+  })
 })
