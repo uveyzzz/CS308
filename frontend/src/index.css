@@ -116,6 +116,32 @@ a {
   cursor: pointer;
 }
 
+/* Search box in the header (SCRUM-19). */
+.search-bar {
+  display: flex;
+  gap: 6px;
+}
+
+.search-bar input {
+  min-width: 180px;
+  padding: 6px 12px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--bg);
+  color: var(--text);
+  font: inherit;
+}
+
+.search-bar button {
+  padding: 6px 14px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+  cursor: pointer;
+}
+
 /* Phones (SCRUM-28): the links fold behind the Menu button and stack. */
 @media (max-width: 767px) {
   .app-header {
@@ -138,6 +164,15 @@ a {
 
   .header-menu-open {
     display: flex;
+  }
+
+  .search-bar {
+    width: 100%;
+  }
+
+  .search-bar input {
+    flex: 1;
+    min-width: 0;
   }
 
   .app-header nav,

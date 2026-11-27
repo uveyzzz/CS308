@@ -4,6 +4,7 @@ import { ADMIN_AREAS } from '../auth/adminAreas'
 import { useAuth } from '../auth/authContext'
 import { useCart } from '../cart/cartContext'
 import CategoryMenu from './CategoryMenu'
+import SearchBar from './SearchBar'
 
 export default function Layout() {
   const { user, loading, logout } = useAuth()
@@ -43,6 +44,7 @@ export default function Layout() {
               Cart ({count})
             </NavLink>
           </nav>
+          <SearchBar onSearch={() => setMenuOpen(false)} />
           <CategoryMenu />
           {!loading && (
             <nav className="app-header-account" aria-label="Account">
