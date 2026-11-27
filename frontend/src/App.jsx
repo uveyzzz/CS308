@@ -15,6 +15,7 @@ import ProductDetailPage from './pages/ProductDetailPage'
 import ProductListPage from './pages/ProductListPage'
 import ProfilePage from './pages/ProfilePage'
 import RegisterPage from './pages/RegisterPage'
+import SearchPage from './pages/SearchPage'
 
 // Routes live here. Add a page as <Route path="products" element={<ProductListPage />} />
 // Pages that need a login go inside the ProtectedRoute block.
@@ -28,6 +29,7 @@ export default function App() {
             <Route path="products" element={<ProductListPage />} />
             <Route path="product/:slug" element={<ProductDetailPage />} />
             <Route path="category/:slug" element={<CategoryPage />} />
+            <Route path="search" element={<SearchPage />} />
             <Route path="cart" element={<CartPage />} />
             <Route path="login" element={<LoginPage />} />
             <Route path="register" element={<RegisterPage />} />
